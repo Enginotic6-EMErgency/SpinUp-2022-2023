@@ -1,4 +1,4 @@
-#include "main.h"
+#include "devices.h"
 
 /**
  * A callback function for LLEMU's center button.
@@ -74,45 +74,20 @@ void autonomous() {}
  * task, not resume it from where it left off.
  */
 void opcontrol() {
-	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::Motor flywheel(6, pros::E_MOTOR_GEARSET_06);
-	pros::Motor flywheel2(7, pros::E_MOTOR_GEARSET_06);
-	pros::Motor lf(5);
-	pros::Motor lm(3);
-	pros::Motor lb(4);
 
-	pros::Motor rf(18);
-	pros::Motor rm(14);
-	pros::Motor rb(17);
- 
-	pros::ADIDigitalOut pneumatics('a');
-	bool vel = false;
-	bool pneu = false;
+	int straight, turn;
 	while (true) {
-		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
-		                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
-		                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);
-		int straight = master.get_analog(ANALOG_LEFT_Y);
-		int turn = master.get_analog(ANALOG_RIGHT_X);
-		pros::lcd::print(5, "Motor Velocity: %f", flywheel.get_actual_velocity());
+		straight = driverController.get_analog(ANALOG_LEFT_Y);
+		turn = driverController.get_analog(ANALOG_RIGHT_X);
 
-		if(master.get_digital_new_press(DIGITAL_X)) {
-			vel = !vel;
-		}
-		flywheel = vel * 600;
-		flywheel2 = vel * 600;
-		if(master.get_digital_new_press(DIGITAL_Y)) {
-			pneu = !pneu;
-		}
+		leftDrive1.move( straight  - turn );
+		leftDrive2.move( straight  - turn ); 
+		leftDrive3.move( straight  - turn );
+		rightDrive1.move( straight + turn); 
+		rightDrive2.move( straight + turn ); 
+		rightDrive3.move( straight + turn ); 
 
-		lf = straight - turn;
-		lm = straight - turn;
-		lb = straight - turn;
-		rf = -(straight + turn);
-		rm = -(straight + turn);
-		rb = -(straight + turn);
-
-		pneumatics.set_value(pneu);
+		
 		pros::delay(10);
 	}
 }
